@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha 2</title>
+</head>
+<body>
+    <div id="grade-completa">
+        <div id="rotulos-colunas"></div>
+        <div id="linha-com-tabuleiro">
+            <div id="rotulos-linhas"></div>
+            <div id="container-tabuleiro"></div>
+        </div>
+    </div>
+
+
+    <div style="margin-top: 20px;" id="jogada">
+        <label for="input-coordenada" style="font-size: 50px;">Jogar na Casa:</label>
+        <input type="text" id="input-coordenada" maxlength="2" style="width: 150px;height: 100px; font-size: 50px; text-transform: uppercase;">
+    </div>
+
+
+    <div id="jogador">Jogador da vez: <span id="jogador-atual">X</span></div>
+    <button id="reiniciar">Reiniciar Jogo</button>
+
+    <script src="script.js"></script>
+</body>
+</html>
