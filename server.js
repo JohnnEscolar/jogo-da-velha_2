@@ -5,6 +5,7 @@ const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+const socket =io();
 
 app.use(express.static('public')); // sua pasta do jogo
 
