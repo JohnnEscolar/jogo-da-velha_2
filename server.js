@@ -1,21 +1,55 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
+const socket = io();
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+// === Entrar em uma sala ===
+let roomId = prompt("Digite o código da sala para jogar com seu amigo:");
+socket.emit("joinRoom", roomId);
 
+let simbolo = null; // X ou O
+let minhaVez = false;
 
-app.use(express.static('public')); // sua pasta do jogo
+// Escolher símbolo automaticamente (primeiro jogador é X)
+socket.on("connect", () => {
+    socket.emit("joinRoom", roomId);
+});
 
-// Conexão de jogadores
-io.on('connection', (socket) => {
-    console.log('Um jogador entrou:', socket.id);
+// Quando o outro jogador faz uma jogada
+socket.on("play", ({ posicao, simbolo: simboloOponente }) => {
+    document.getElementById(posicao).innerText = simboloOponente;
+    minhaVez = true; // sua vez depois do oponente
+});
 
-    socket.on('play', (data) => {
-        socket.broadcast.emit('play', data); // repassa a jogada para o outro
+// === Lógica do jogo ===
+const botoes = document.querySelectorAll(".celula");
+
+botoes.forEach(botao => {
+    botao.addEventListener("click", () => {
+        if (botao.innerText !== "" || !minhaVez) return;
+
+        // Marca no seu jogo
+        botao.innerText = simbolo;
+
+        // Envia jogada para o servidor
+        socket.emit("play", { roomId, posicao: botao.id, simbolo });
+
+        minhaVez = false;
     });
 });
 
-server.listen(3000, () => console.log('Servidor rodando na porta 3000'));
+// Definir símbolo inicial
+socket.on("connect", () => {
+    // Simples: se for o primeiro na sala, é X, senão O
+    fetch(`/countPlayers?room=${roomId}`)
+        .then(res => res.json())
+        .then(data => {
+            simbolo = data.players === 1 ? "X" : "O";
+            minhaVez = simbolo === "X";
+            alert(`Você é o jogador ${simbolo}`);
+        });
+});
+
+// Contar jogadores na sala
+app.get('/countPlayers', (req, res) => {
+    const room = req.query.room;
+    const count = io.sockets.adapter.rooms.get(room)?.size || 0;
+    res.json({ players: count });
+});
