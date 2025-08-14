@@ -1,4 +1,3 @@
-const socket = io();
 
 // === Entrar em uma sala ===
 let roomId = prompt("Digite o código da sala para jogar com seu amigo:");

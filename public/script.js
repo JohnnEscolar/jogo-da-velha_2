@@ -1,3 +1,6 @@
+const socket = io();
+
+
 const tabuleiroGrande = document.getElementById("container-tabuleiro");
         const jogadorAtualSpan = document.getElementById("jogador-atual");
         const botaoReiniciar = document.getElementById("reiniciar");
