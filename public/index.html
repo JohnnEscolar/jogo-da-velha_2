@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo da Velha 2</title>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
     <div id="grade-completa">
@@ -26,9 +27,9 @@
     <button id="reiniciar">Reiniciar Jogo</button>
 
     <script src="script.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
+
     <script>
-    const socket = io();
+
 
   // Quando clicar no tabuleiro
   function jogar(pos) {
