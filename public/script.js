@@ -4,7 +4,8 @@ const tabuleiroGrande = document.getElementById("container-tabuleiro");
 const jogadorAtualSpan = document.getElementById("jogador-atual");
 const botaoReiniciar = document.getElementById("reiniciar");
 
-let jogadorAtual = "X";
+let meuSimbolo = null; // recebido do servidor
+let turnoAtual = "X";  // controlado pelo servidor
 let estadoTabuleiros = Array(9).fill(null).map(() => Array(9).fill(null));
 let tabuleiroAtual = null;
 let estadoTabuleiroGrande = Array(9).fill(null);
@@ -19,10 +20,11 @@ function criarTabuleiroPequeno(indiceTabuleiro) {
         casa.classList.add("casa");
         casa.dataset.indice = i;
         casa.addEventListener("click", () => {
-            // Só envia se a jogada for válida
+            // Só permite se for minha vez e a jogada for válida
+            if (meuSimbolo !== turnoAtual) return; // bloqueia fora da vez
             if (!estadoTabuleiros[indiceTabuleiro][i]) {
                 fazerJogada(indiceTabuleiro, i);
-                socket.emit("jogada", { indiceTabuleiro, indiceCasa: i, jogador: jogadorAtual });
+                socket.emit("jogada", { indiceTabuleiro, indiceCasa: i, jogador: meuSimbolo });
             }
         });
         tabuleiro.appendChild(casa);
@@ -42,7 +44,6 @@ function inicializarJogo() {
     estadoTabuleiros = Array(9).fill(null).map(() => Array(9).fill(null));
     estadoTabuleiroGrande = Array(9).fill(null);
     tabuleiroAtual = null;
-    jogadorAtual = "X";
     atualizarEstado();
 }
 
@@ -62,11 +63,14 @@ function atualizarEstado() {
             }
         });
 
-        tabuleiro.style.pointerEvents = tabuleiroAtual === null || tabuleiroAtual === indiceTabuleiro || concluido ? "auto" : "none";
-        tabuleiro.style.opacity = tabuleiroAtual === null || tabuleiroAtual === indiceTabuleiro || concluido ? "1" : "0.5";
+        // Ativa/desativa tabuleiros de acordo com a regra
+        tabuleiro.style.pointerEvents =
+            tabuleiroAtual === null || tabuleiroAtual === indiceTabuleiro || concluido ? "auto" : "none";
+        tabuleiro.style.opacity =
+            tabuleiroAtual === null || tabuleiroAtual === indiceTabuleiro || concluido ? "1" : "0.5";
     });
 
-    jogadorAtualSpan.textContent = jogadorAtual;
+    jogadorAtualSpan.textContent = turnoAtual;
 }
 
 function verificarVencedor(casas) {
@@ -94,7 +98,7 @@ function verificarVencedor(casas) {
 function fazerJogada(indiceTabuleiro, indiceCasa, jogadorForcado = null) {
     if (estadoTabuleiros[indiceTabuleiro][indiceCasa]) return;
 
-    const jogadorUsado = jogadorForcado || jogadorAtual;
+    const jogadorUsado = jogadorForcado || meuSimbolo;
     estadoTabuleiros[indiceTabuleiro][indiceCasa] = jogadorUsado;
     const vencedorTabuleiro = verificarVencedor(estadoTabuleiros[indiceTabuleiro]);
 
@@ -108,8 +112,6 @@ function fazerJogada(indiceTabuleiro, indiceCasa, jogadorForcado = null) {
         }
     }
 
-    jogadorAtual = jogadorAtual === "X" ? "O" : "X";
-
     if (estadoTabuleiros[indiceCasa].every(casa => casa) || estadoTabuleiroGrande[indiceCasa]) {
         tabuleiroAtual = null;
     } else {
@@ -118,6 +120,18 @@ function fazerJogada(indiceTabuleiro, indiceCasa, jogadorForcado = null) {
 
     atualizarEstado();
 }
+
+// Recebe símbolo do servidor
+socket.on("symbol", (symbol) => {
+    meuSimbolo = symbol;
+    console.log(`Você é o jogador ${meuSimbolo}`);
+});
+
+// Recebe turno do servidor
+socket.on("turn", (turn) => {
+    turnoAtual = turn;
+    atualizarEstado();
+});
 
 // Recebe jogada de outro jogador
 socket.on("jogada", (data) => {
@@ -165,12 +179,15 @@ function jogarCoordenada() {
     const colunaDentro = coluna % 3;
     const indiceCasa = linhaDentro * 3 + colunaDentro;
 
-    if (
-        tabuleiroAtual !== null &&
+    if (tabuleiroAtual !== null &&
         tabuleiroAtual !== indiceTabuleiro &&
-        !estadoTabuleiroGrande[indiceTabuleiro]
-    ) {
+        !estadoTabuleiroGrande[indiceTabuleiro]) {
         alert(`Você só pode jogar no tabuleiro ${tabuleiroAtual + 1}.`);
+        return;
+    }
+
+    if (meuSimbolo !== turnoAtual) {
+        alert("Não é a sua vez!");
         return;
     }
 
@@ -180,7 +197,7 @@ function jogarCoordenada() {
     }
 
     fazerJogada(indiceTabuleiro, indiceCasa);
-    socket.emit("jogada", { indiceTabuleiro, indiceCasa, jogador: jogadorAtual });
+    socket.emit("jogada", { indiceTabuleiro, indiceCasa, jogador: meuSimbolo });
 }
 
 document.getElementById("input-coordenada").addEventListener("keydown", function (event) {
