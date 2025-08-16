@@ -16,35 +16,17 @@
         </div>
     </div>
 
-
     <div style="margin-top: 20px;" id="jogada">
         <label for="input-coordenada" style="font-size: 50px;">Jogar na Casa:</label>
         <input type="text" id="input-coordenada" maxlength="2" style="width: 150px;height: 100px; font-size: 50px; text-transform: uppercase;">
     </div>
 
-
-    <div id="jogador">Jogador da vez: <span id="jogador-atual">X</span></div>
+    <div id="jogador">
+        <strong id="mensagem-vez">Aguardando jogador...</strong>
+    </div>
+    
     <button id="reiniciar">Reiniciar Jogo</button>
 
     <script src="script.js"></script>
-
-    <script>
-
-
-  // Quando clicar no tabuleiro
-  function jogar(pos) {
-    // Atualiza localmente
-    marcarNoTabuleiro(pos);
-
-    // Envia para o servidor
-    socket.emit('play', { pos: pos });
-  }
-
-  // Quando receber jogada do outro jogador
-  socket.on('play', (data) => {
-    marcarNoTabuleiro(data.pos);
-  });
-</script>
-
 </body>
 </html>
