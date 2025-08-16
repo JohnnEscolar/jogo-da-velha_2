@@ -20,8 +20,7 @@ function criarTabuleiroPequeno(indiceTabuleiro) {
         casa.classList.add("casa");
         casa.dataset.indice = i;
         casa.addEventListener("click", () => {
-            // Só permite se for minha vez e a jogada for válida
-            if (meuSimbolo !== turnoAtual) return; // bloqueia fora da vez
+            if (meuSimbolo !== turnoAtual) return; // bloqueia se não for minha vez
             if (!estadoTabuleiros[indiceTabuleiro][i]) {
                 fazerJogada(indiceTabuleiro, i);
                 socket.emit("jogada", { indiceTabuleiro, indiceCasa: i, jogador: meuSimbolo });
@@ -63,14 +62,18 @@ function atualizarEstado() {
             }
         });
 
-        // Ativa/desativa tabuleiros de acordo com a regra
         tabuleiro.style.pointerEvents =
             tabuleiroAtual === null || tabuleiroAtual === indiceTabuleiro || concluido ? "auto" : "none";
         tabuleiro.style.opacity =
             tabuleiroAtual === null || tabuleiroAtual === indiceTabuleiro || concluido ? "1" : "0.5";
     });
 
-    jogadorAtualSpan.textContent = turnoAtual;
+    // 🔹 Exibe mensagem clara de vez
+    if (meuSimbolo === turnoAtual) {
+        jogadorAtualSpan.textContent = "Agora é a sua vez!";
+    } else {
+        jogadorAtualSpan.textContent = "Agora é a vez do oponente!";
+    }
 }
 
 function verificarVencedor(casas) {
@@ -118,6 +121,8 @@ function fazerJogada(indiceTabuleiro, indiceCasa, jogadorForcado = null) {
         tabuleiroAtual = indiceCasa;
     }
 
+    // 🔹 Alterna turno ao final da jogada
+    turnoAtual = (jogadorUsado === "X") ? "O" : "X";
     atualizarEstado();
 }
 
@@ -125,6 +130,7 @@ function fazerJogada(indiceTabuleiro, indiceCasa, jogadorForcado = null) {
 socket.on("symbol", (symbol) => {
     meuSimbolo = symbol;
     console.log(`Você é o jogador ${meuSimbolo}`);
+    atualizarEstado();
 });
 
 // Recebe turno do servidor
